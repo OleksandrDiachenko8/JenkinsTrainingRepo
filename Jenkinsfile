@@ -42,7 +42,7 @@ pipeline {
         stage('Report') {
             steps {
                 echo 'Reporting....'
-                echo 'Successful adding new string'
+                echo 'Successful changing new string'
             }
         }
     }
