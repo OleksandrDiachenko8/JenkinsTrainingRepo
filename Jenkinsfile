@@ -1,63 +1,75 @@
 pipeline {
-    agent any
-
-    // this section configures Jenkins options
+    agent { label 'aws' }
+    environment {
+     MYVARIABLE = "some-variable"
+    }
+    
     options {
-
-        // only keep 10 logs for no more than 10 days
         buildDiscarder(logRotator(daysToKeepStr: '10', numToKeepStr: '10'))
-
-        // cause the build to time out if it runs for more than 12 hours
-        timeout(time: 12, unit: 'HOURS')
-
-        // add timestamps to the log
+        timeout(time: 1, unit: 'HOURS')
         timestamps()
     }
-
-    // this section configures triggers
-    triggers {
-          // create a cron trigger that will run the job every day at midnight
-          // note that the time is based on the time zone used by the server
-          // where Jenkins is running, not the user's time zone
-          cron '@midnight'
-    }
-
-    // the pipeline section we all know and love: stages! :D
     stages {
+        stage('Source') {
+            steps {
+                sh 'git --version'
+                sh 'python3 --version'
+                git branch: 'nodetask',
+                    url: 'https://github.com/OleksandrDiachenko8/JenkinsTrainingRepo'
+            }
+        }           
+
         stage('Requirements') {
             steps {
-                echo 'Installing requirements...'
+                dir("${env.WORKSPACE/code}"){
+                    sh 'python3 -m venv venv'
+                    sh './venv/bin/pip3 install --upgrade --requirement requirements.txt'
+                }
             }
         }
-        stage('Build') {
+        stage('Lint') {
             steps {
-                echo 'Building..'
+                dir("${env.WORKSPACE}/code"){
+                    sh 'venv/bin/flake8 --ignore=E501,E231 *.py'
+                    sh 'venv/bin/pylint --errors-only --disable=C0301 --disable=C0326 *.py'
+                }
             }
         }
         stage('Test') {
             steps {
-                echo 'Testing..'
+                dir("${env.WORKSPACE}/code"){
+                    sh('''
+                        venv/bin/coverage run -m pytest -v test_*.py \
+                            --junitxml=pytest_junit.xml
+                    ''')
+                }
             }
         }
-        stage('Report') {
+        stage('Build') {
             steps {
-                echo 'Reporting....'
-                echo 'Successful changing new string'
+                echo "Build the application in this step..."
+            }
+        }
+        stage('Deploy') {
+            steps {
+                echo "Deploy the application in this step..."
             }
         }
     }
-
-    // the post section is a special collection of stages
-    // that are run after all other stages have completed
+    
     post {
-
-        // the always stage will always be run
         always {
+            dir("${env.WORKSPACE}/code"){
+                sh 'venv/bin/coverage xml'
+            }
 
-            // the always stage can contain build steps like other stages
-            // a "steps{...}" section is not needed.
-            echo "This step will run after all other steps have finished.  It will always run, even in the status of the build is not SUCCESS"
+            junit allowEmptyResults: true, testResults: '**/pytest_junit.xml'
+
+            junit allowEmptyResults: true, testResults: '**/pylint_junit.xml'
+
+            publishCoverage adapters: [cobertura('**/coverage.xml')],
+                sourceFileResolver: sourceFiles('STORE_LAST_BUILD')
         }
     }
-}
 
+}
