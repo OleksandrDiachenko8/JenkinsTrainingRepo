@@ -67,14 +67,14 @@ pipeline {
     post {
         always {
             dir("${env.WORKSPACE}/code"){
-                sh 'venv/bin/coverage.xml'
+                sh 'venv/bin/coverage xml'
             }
 
             junit allowEmptyResults: true, testResults: '**/pytest_junit.xml'
 
             junit allowEmptyResults: true, testResults: '**/pylint_junit.xml'
 
-            publishCoverage adapters: [cobertura('**/coverage xml')],
+            publishCoverage adapters: [cobertura('**/coverage.xml')],
                 sourceFileResolver: sourceFiles('STORE_LAST_BUILD')
             archiveArtifacts allowEmptyArchive: true,
                 artifacts: '**/*.txt, **/*.xml,',
