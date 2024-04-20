@@ -74,7 +74,7 @@ pipeline {
 
             junit allowEmptyResults: true, testResults: '**/pylint_junit.xml'
 
-            publishCoverage adapters: [cobertura('**/coverage.xml')],
+            publishCoverage adapters: [cobertura('**/coverage xml')],
                 sourceFileResolver: sourceFiles('STORE_LAST_BUILD')
             archiveArtifacts allowEmptyArchive: true,
                 artifacts: '**/*.txt, **/*.xml,',
