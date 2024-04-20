@@ -22,16 +22,16 @@ pipeline {
 
         stage('Requirements') {
             steps {
-                dir("${env.WORKSPACE}/nodeplustests/code"){
+                dir("${env.WORKSPACE}/code"){
                     sh 'python3 -m venv venv'
                     sh 'pwd'
-                    sh './venv/bin/pip3 install --upgrade --requirement ${env.WORKSPACE}/nodeplustests/code/requirements.txt'
+                    sh './venv/bin/pip3 install --upgrade --requirement requirements.txt'
                 }
             }
         }
         stage('Lint') {
             steps {
-                dir("${env.WORKSPACE}/nodeplustests/code"){
+                dir("${env.WORKSPACE}/code"){
                     sh 'venv/bin/flake8 --ignore=E501,E231 *.py'
                     sh 'venv/bin/pylint --errors-only --disable=C0301 --disable=C0326 *.py'
                 }
@@ -39,7 +39,7 @@ pipeline {
         }
         stage('Test') {
             steps {
-                dir("${env.WORKSPACE}/nodeplustests/code"){
+                dir("${env.WORKSPACE}/code"){
                     sh('''
                         venv/bin/coverage run -m pytest -v test_*.py \
                             --junitxml=pytest_junit.xml
@@ -66,7 +66,7 @@ pipeline {
     
     post {
         always {
-            dir("${env.WORKSPACE}/nodeplustests/code"){
+            dir("${env.WORKSPACE}/code"){
                 sh 'venv/bin/coverage.xml'
             }
 
