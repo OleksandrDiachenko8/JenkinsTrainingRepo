@@ -24,7 +24,8 @@ pipeline {
             steps {
                 dir("${env.WORKSPACE}/nodeplustests/code"){
                     sh 'python3 -m venv venv'
-                    sh './venv/bin/pip3 install --upgrade --requirement requirements.txt'
+                    sh 'pwd'
+                    sh './venv/bin/pip3 install --upgrade --requirement ${env.WORKSPACE}/nodeplustests/code/requirements.txt'
                 }
             }
         }
