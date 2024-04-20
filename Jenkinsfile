@@ -78,6 +78,7 @@ pipeline {
                 sourceFileResolver: sourceFiles('STORE_LAST_BUILD')
             archiveArtifacts allowEmptyArchive: true,
                 artifacts: '**/*.txt, **/*.xml,',
+                excludes: '**/venv/**/*.txt, **/*.xml,',
                 fingerprint: true,
                 followSymlinks: false,
                 onlyIfSuccessful: true
