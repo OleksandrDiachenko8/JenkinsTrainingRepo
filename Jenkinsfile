@@ -6,7 +6,7 @@ pipeline {
     
     options {
         copyArtifactPermission 'read-artifact'
-        buildDiscarder(logRotator(daysToKeepStr: '10', numToKeepStr: '10'))
+        buildDiscarder(logRotator(daysToKeepStr: '10', numToKeepStr: '3'))
         timeout(time: 1, unit: 'HOURS')
         timestamps()
     }
