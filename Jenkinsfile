@@ -1,10 +1,11 @@
 pipeline {
-    agent { label 'aws' }
+    agent { label 'oracle' }
     environment {
      MYVARIABLE = "some-variable"
     }
     
     options {
+        copyArtifactPermission 'read-artifact'
         buildDiscarder(logRotator(daysToKeepStr: '10', numToKeepStr: '10'))
         timeout(time: 1, unit: 'HOURS')
         timestamps()
@@ -12,8 +13,8 @@ pipeline {
     stages {
         stage('Source') {
             steps {
-                sh 'git --version'
-                sh 'python3 --version'
+                sh 'git --version | tee versions.txt' 
+                sh 'python3 --version | tee -a versions.txt'
                 git branch: 'nodetask',
                     url: 'https://github.com/OleksandrDiachenko8/JenkinsTrainingRepo'
             }
@@ -50,6 +51,11 @@ pipeline {
                 echo "Build the application in this step..."
             }
         }
+        stage('Create-env-Artifact') {
+            steps {                
+                sh "set > envreport.txt"                                
+            }
+        }
         stage('Deploy') {
             steps {
                 echo "Deploy the application in this step..."
@@ -69,6 +75,11 @@ pipeline {
 
             publishCoverage adapters: [cobertura('**/coverage.xml')],
                 sourceFileResolver: sourceFiles('STORE_LAST_BUILD')
+            archiveArtifacts allowEmptyArchive: true,
+                artifacts: '**/*.txt, **/*.xml,',
+                fingerprint: true,
+                followSymlinks: false,
+                onlyIfSuccessful: true
         }
     }
 
